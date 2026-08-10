@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pokemon-manager-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pokemon_manager
+      POSTGRES_USER: pokemon_user
+      POSTGRES_PASSWORD: pokemon_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
