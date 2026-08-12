@@ -66,3 +66,44 @@ export async function restoreSession(): Promise<string | null> {
 
   return data.access_token
 }
+
+export interface RegisterRequest {
+  username: string
+  email: string
+  password: string
+}
+
+export interface RegisterResponse {
+  id: number
+  username: string
+  email: string
+}
+
+export async function register(
+  username: string,
+  email: string,
+  password: string,
+): Promise<RegisterResponse> {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null)
+
+    throw new Error(
+      error?.detail ?? 'No fue posible crear la cuenta',
+    )
+  }
+
+  return response.json()
+}

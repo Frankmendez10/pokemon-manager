@@ -7,6 +7,7 @@ import PokemonForm from './components/PokemonForm'
 import { getAccessToken,} from './services/apiClient'
 import { logout, restoreSession,} from './services/authApi'
 import AiPokemonIdentifier, { type IdentifiedPokemon,} from './components/AiPokemonIdentifier'
+import Register from "./components/Register";
 
 function App() {
   const [token, setToken] = useState<string | null>( getAccessToken(), )
@@ -18,6 +19,7 @@ function App() {
   const [showPokemonForm, setShowPokemonForm] = useState(false)
   const [editingPokemon, setEditingPokemon] = useState<Pokemon | null>(null)
   const [pokemonToDelete, setPokemonToDelete] = useState<Pokemon | null>(null)
+  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     const restore = async () => {
@@ -222,7 +224,16 @@ function App() {
   }
 
   if (!token) {
-    return <Login onLogin={handleLogin} />
+    return showRegister ? (
+      <Register
+        onBackToLogin={() => setShowRegister(false)}
+      />
+    ) : (
+      <Login
+        onLogin={handleLogin}
+        onRegister={() => setShowRegister(true)}
+      />
+    )
   }
 
   return (

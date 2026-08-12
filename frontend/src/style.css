@@ -2017,3 +2017,48 @@ AI ADD TO COLLECTION
 .ai-pokemon-another-button:active {
   transform: translateY(0);
 }
+
+/* ================================
+   REGISTER
+   ================================ */
+
+.register-card {
+  max-width: 460px;
+}
+
+.register-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.register-bottom-footer {
+  margin-top: 18px;
+}
+
+.login-register-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.login-register-link:hover {
+  color: var(--primary-dark);
+}
+
+.login-register-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
