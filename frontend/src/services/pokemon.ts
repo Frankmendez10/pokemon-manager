@@ -2,7 +2,7 @@ export interface Pokemon {
   id: number
   pokedex_number: number
   name: string
-  type_1: string | null
+  type_1: string
   type_2: string | null
 }
 

@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual environment
+# Virtual environments
 .venv/
 venv/
 env/
@@ -14,19 +14,12 @@ env/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # SQLite / local databases
 *.db
 *.sqlite
 *.sqlite3
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
 
 # Node
 node_modules/
@@ -35,3 +28,11 @@ frontend/build/
 
 # Logs
 *.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

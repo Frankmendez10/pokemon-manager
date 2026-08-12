@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
+
+from app.core.security import get_current_user
+from app.models.user import User
 
 from app.core.database import get_db
 from app.schemas.pokemon import (
@@ -7,6 +10,7 @@ from app.schemas.pokemon import (
     PokemonResponse,
     PokemonUpdate,
 )
+
 from app.services.pokeapi import (
     PokemonNotFoundError,
     PokeAPITimeoutError,
@@ -28,8 +32,14 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[PokemonResponse])
-def list_pokemon(db: Session = Depends(get_db)):
+@router.get(
+    "/",
+    response_model=list[PokemonResponse],
+)
+def list_pokemon(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return get_pokemon(db)
 
 
@@ -40,10 +50,21 @@ def list_pokemon(db: Session = Depends(get_db)):
 )
 def add_pokemon(
     pokemon_data: PokemonCreate,
+    response: Response,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        return create_pokemon(db, pokemon_data)
+        pokemon, found_in_pokeapi = create_pokemon(
+            db,
+            pokemon_data,
+        )
+
+        if found_in_pokeapi:
+            response.headers["X-Pokemon-Source"] = "pokeapi"
+
+        return pokemon
+
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -59,6 +80,7 @@ def add_pokemon(
 def import_pokemon(
     pokemon_identifier: int | str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         return import_pokemon_from_pokeapi(
@@ -91,38 +113,57 @@ def import_pokemon(
         )
 
 
-@router.get("/{pokemon_id}", response_model=PokemonResponse)
+@router.get(
+    "/{pokemon_id}",
+    response_model=PokemonResponse,
+)
 def get_pokemon_by_id(
     pokemon_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    pokemon = get_pokemon_service_by_id(db, pokemon_id)
+    pokemon = get_pokemon_service_by_id(
+        db,
+        pokemon_id,
+    )
 
     if pokemon is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pokémon not found",
+            detail="Pokémon no encontrado",
         )
 
     return pokemon
 
 
-@router.put("/{pokemon_id}", response_model=PokemonResponse)
+@router.put(
+    "/{pokemon_id}",
+    response_model=PokemonResponse,
+)
 def edit_pokemon(
     pokemon_id: int,
     pokemon_data: PokemonUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    pokemon = get_pokemon_service_by_id(db, pokemon_id)
+    pokemon = get_pokemon_service_by_id(
+        db,
+        pokemon_id,
+    )
 
     if pokemon is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pokémon not found",
+            detail="Pokémon no encontrado",
         )
 
     try:
-        return update_pokemon(db, pokemon, pokemon_data)
+        return update_pokemon(
+            db,
+            pokemon,
+            pokemon_data,
+        )
+
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -137,13 +178,20 @@ def edit_pokemon(
 def remove_pokemon(
     pokemon_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    pokemon = get_pokemon_service_by_id(db, pokemon_id)
+    pokemon = get_pokemon_service_by_id(
+        db,
+        pokemon_id,
+    )
 
     if pokemon is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pokémon not found",
+            detail="Pokémon no encontrado",
         )
 
-    delete_pokemon(db, pokemon)
+    delete_pokemon(
+        db,
+        pokemon,
+    )

@@ -1,10 +1,18 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = (
-    "postgresql+psycopg2://"
-    "pokemon_user:pokemon_password@localhost:5432/pokemon_manager"
-)
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL no está configurada. "
+        "Copia backend/.env.example a backend/.env y complétala."
+    )
 
 engine = create_engine(
     DATABASE_URL,
@@ -35,3 +43,6 @@ def check_database_connection() -> bool:
         return True
     except Exception:
         return False
+
+def create_tables() -> None:
+    Base.metadata.create_all(bind=engine)

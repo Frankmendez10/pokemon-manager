@@ -4,11 +4,13 @@ from app.services.pokeapi import (
     PokeAPIConnectionError,
 )
 
+
 def test_list_pokemon_empty(client):
     response = client.get("/pokemon/")
 
     assert response.status_code == 200
     assert response.json() == []
+
 
 def test_create_pokemon(client):
     pokemon_data = {
@@ -26,9 +28,10 @@ def test_create_pokemon(client):
 
     assert data["id"] is not None
     assert data["pokedex_number"] == 25
-    assert data["name"] == "Pikachu"
-    assert data["type_1"] == "Electric"
+    assert data["name"] == "pikachu"
+    assert data["type_1"] == "electric"
     assert data["type_2"] is None
+
 
 def test_get_pokemon_by_id(client):
     pokemon_data = {
@@ -38,27 +41,34 @@ def test_get_pokemon_by_id(client):
         "type_2": None,
     }
 
-    create_response = client.post("/pokemon/", json=pokemon_data)
+    create_response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert create_response.status_code == 201
 
     pokemon_id = create_response.json()["id"]
 
-    response = client.get(f"/pokemon/{pokemon_id}")
+    response = client.get(
+        f"/pokemon/{pokemon_id}"
+    )
 
     assert response.status_code == 200
 
     data = response.json()
 
     assert data["id"] == pokemon_id
-    assert data["name"] == "Pikachu"
+    assert data["name"] == "pikachu"
     assert data["pokedex_number"] == 25
+
 
 def test_get_pokemon_not_found(client):
     response = client.get("/pokemon/999999")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Pokémon not found"
+    assert response.json()["detail"] == "Pokémon no encontrado"
+
 
 def test_create_pokemon_invalid_data(client):
     pokemon_data = {
@@ -68,9 +78,13 @@ def test_create_pokemon_invalid_data(client):
         "type_2": None,
     }
 
-    response = client.post("/pokemon/", json=pokemon_data)
+    response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert response.status_code == 422
+
 
 def test_create_pokemon_duplicate_pokedex_number(client):
     pokemon_data = {
@@ -80,14 +94,24 @@ def test_create_pokemon_duplicate_pokedex_number(client):
         "type_2": None,
     }
 
-    first_response = client.post("/pokemon/", json=pokemon_data)
+    first_response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert first_response.status_code == 201
 
-    duplicate_response = client.post("/pokemon/", json=pokemon_data)
+    duplicate_response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert duplicate_response.status_code == 409
-    assert "already exists" in duplicate_response.json()["detail"]
+    assert (
+        duplicate_response.json()["detail"]
+        == "Este número de Pokédex ya existe en nuestra colección."
+    )
+
 
 def test_update_pokemon(client):
     pokemon_data = {
@@ -97,7 +121,10 @@ def test_update_pokemon(client):
         "type_2": None,
     }
 
-    create_response = client.post("/pokemon/", json=pokemon_data)
+    create_response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert create_response.status_code == 201
 
@@ -122,6 +149,7 @@ def test_update_pokemon(client):
     assert data["type_1"] == "Electric"
     assert data["pokedex_number"] == 25
 
+
 def test_update_pokemon_not_found(client):
     update_data = {
         "name": "Raichu",
@@ -133,7 +161,8 @@ def test_update_pokemon_not_found(client):
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Pokémon not found"
+    assert response.json()["detail"] == "Pokémon no encontrado"
+
 
 def test_update_pokemon_duplicate_pokedex_number(client):
     pikachu = {
@@ -150,8 +179,15 @@ def test_update_pokemon_duplicate_pokedex_number(client):
         "type_2": None,
     }
 
-    pikachu_response = client.post("/pokemon/", json=pikachu)
-    charmander_response = client.post("/pokemon/", json=charmander)
+    pikachu_response = client.post(
+        "/pokemon/",
+        json=pikachu,
+    )
+
+    charmander_response = client.post(
+        "/pokemon/",
+        json=charmander,
+    )
 
     assert pikachu_response.status_code == 201
     assert charmander_response.status_code == 201
@@ -165,6 +201,7 @@ def test_update_pokemon_duplicate_pokedex_number(client):
 
     assert response.status_code == 409
 
+
 def test_delete_pokemon(client):
     pokemon_data = {
         "pokedex_number": 25,
@@ -173,7 +210,10 @@ def test_delete_pokemon(client):
         "type_2": None,
     }
 
-    create_response = client.post("/pokemon/", json=pokemon_data)
+    create_response = client.post(
+        "/pokemon/",
+        json=pokemon_data,
+    )
 
     assert create_response.status_code == 201
 
@@ -191,11 +231,15 @@ def test_delete_pokemon(client):
 
     assert get_response.status_code == 404
 
+
 def test_delete_pokemon_not_found(client):
-    response = client.delete("/pokemon/999999")
+    response = client.delete(
+        "/pokemon/999999"
+    )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Pokémon not found"
+    assert response.json()["detail"] == "Pokémon no encontrado"
+
 
 def test_import_pokemon_from_pokeapi(client, monkeypatch):
     pokeapi_response = {
@@ -212,7 +256,7 @@ def test_import_pokemon_from_pokeapi(client, monkeypatch):
     }
 
     def mock_get_pokemon_from_pokeapi(pokemon_identifier):
-        assert pokemon_identifier == "150"
+        assert str(pokemon_identifier) == "150"
         return pokeapi_response
 
     monkeypatch.setattr(
@@ -220,7 +264,9 @@ def test_import_pokemon_from_pokeapi(client, monkeypatch):
         mock_get_pokemon_from_pokeapi,
     )
 
-    response = client.post("/pokemon/import/150")
+    response = client.post(
+        "/pokemon/import/150"
+    )
 
     assert response.status_code == 201
 
@@ -230,6 +276,7 @@ def test_import_pokemon_from_pokeapi(client, monkeypatch):
     assert data["name"] == "mewtwo"
     assert data["type_1"] == "psychic"
     assert data["type_2"] is None
+
 
 def test_import_pokemon_not_found(client, monkeypatch):
     def mock_get_pokemon_from_pokeapi(pokemon_identifier):
@@ -242,7 +289,9 @@ def test_import_pokemon_not_found(client, monkeypatch):
         mock_get_pokemon_from_pokeapi,
     )
 
-    response = client.post("/pokemon/import/999")
+    response = client.post(
+        "/pokemon/import/999"
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Pokémon not found in PokéAPI"
@@ -259,7 +308,9 @@ def test_import_pokemon_timeout(client, monkeypatch):
         mock_get_pokemon_from_pokeapi,
     )
 
-    response = client.post("/pokemon/import/25")
+    response = client.post(
+        "/pokemon/import/25"
+    )
 
     assert response.status_code == 504
     assert response.json()["detail"] == "PokéAPI request timed out"
@@ -276,7 +327,9 @@ def test_import_pokemon_connection_error(client, monkeypatch):
         mock_get_pokemon_from_pokeapi,
     )
 
-    response = client.post("/pokemon/import/25")
+    response = client.post(
+        "/pokemon/import/25"
+    )
 
     assert response.status_code == 502
     assert response.json()["detail"] == "Unable to connect to PokéAPI"
